@@ -46,6 +46,11 @@ class ResponsableV{
 		$this->apellido = $apellidoR;
 	}
 
+	public function cargarResponsable($nroEmpleado,$nroLicencia,$nomR,$apeR){
+		$objResponsable = new ResponsableV($nroEmpleado,$nroLicencia,$nomR,$apeR);
+		return $objResponsable;
+	}
+
     public function __toString(){
         return "\n"."Numero de empleado: ".$this->getNumeroEmpleado()."\n".
                 "Numero de licencia: ".$this->getNumeroLicencia()."\n".

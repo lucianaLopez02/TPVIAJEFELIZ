@@ -45,6 +45,13 @@ class Pasajero{
 	public function setTelefono($telefonoP) {
 		$this->telefono = $telefonoP;
 	}
+	
+	//Modifica la informacion del pasajero
+	public function modificarPasajero($nombre,$apellido,$phone){
+		$this->setNombre($nombre);
+		$this->setApellido($apellido);
+		$this->setTelefono($phone);
+	}
 
     public function __toString(){
         return "\nNombre: ".$this->getNombre()."\n".

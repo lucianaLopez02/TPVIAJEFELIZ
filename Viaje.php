@@ -65,85 +65,58 @@ class Viaje{
         return $cad;
     }
 
-	public function buscarPasajero($dni){
-        $i = 0;
-        
-        $coleccionPasajeros = $this->getColPasajerosViaje(); // coleccion de pasajeros
-        $cant = count($coleccionPasajeros);
-        $buscado =  false;
-
-        while ($i < $cant && !$buscado) {
-            $objPasajero =$coleccionPasajeros[$i];
-            if ($objPasajero->getNroDocumento() == $dni) {
-                $pasajeroBuscado = $coleccionPasajeros[$i];
-				$buscado = true;
-            }
-		
+    
+// Metodo que busca a un pasajero
+public function buscarPasajero($documento){
+    $arrPasajeros = $this->getColPasajerosViaje();
+    $encontrado = false;
+    $i = 0;
+    while($i<count($arrPasajeros) && !$encontrado){
+        $unPasajero = $arrPasajeros[$i];
+        if($unPasajero->getNroDocumento() == $documento){
+            $encontrado = true;
+        }else{
+            $i++;
         }
        
-        return $pasajeroBuscado;
+    }
+    if(!$encontrado){
+        $i = -1;
+    }
+    return $i;
+}
+
+    
+//Método que verifica si el pasajero se encuentra en el viaje
+public function pasajeroYaCargado($doc){
+    if($this->buscarPasajero($doc) != -1){
+        $pasajeroCargado = true;
+    }else{
+        $pasajeroCargado = false;
+    }
+    return $pasajeroCargado;
+}
+    //une las dos funcionalidades de cargar y modificar pasajero
+    public function ingresaModificaPasajero($objInfoPasajero){
+        $dni = $objInfoPasajero->getNroDocumento();
+        $nombrePasajero = $objInfoPasajero->getNombre();
+        $apellidoPasajero = $objInfoPasajero->getApellido();
+        $telefonoPasajero = $objInfoPasajero->getTelefono();
+        $pasajeros = $this->getColPasajerosViaje();
+        if($this->pasajeroYaCargado($dni)){
+            $indiceModifica = $this->buscarPasajero($dni);
+            $elPasajero = $pasajeros[$indiceModifica];
+            $elPasajero->modificarPasajero($nombrePasajero,$apellidoPasajero,$dni,$telefonoPasajero);
+            $pasajeros[$indiceModifica] = $elPasajero;
+            $this->setColPasajerosViaje($pasajeros);
+        }else{
+        $objPasajero =  new Pasajero($nombrePasajero,$apellidoPasajero,$dni,$telefonoPasajero);
+        $pasajeros[]=$objPasajero;
+        $this->setColPasajerosViaje($pasajeros);
+        }
     }
 
-	/**
-     * Agregar un pasajero a la coleccion Pasajeros
-     * @param object //array $pasajeroNuevo
-     */
-    public function agregarPasajeros($coleccionPasajeros){  //recibe un obj
-       
-            $this->setColPasajerosViaje($coleccionPasajeros);
-           
-            return $coleccionPasajeros;
-
-    }
-
-	public function removerPasajero($dniEliminar){
-            $coleccionPasajeros = $this->getColPasajerosViaje();
-            // Inicializar variables
-            $i = 0;
-            $encontrado = false;
-        
-            // Buscar el pasajero por número de documento
-            while ($i < count($coleccionPasajeros) && !$encontrado) {
-                $pasajero = $coleccionPasajeros[$i];
-                if ($pasajero->getNroDocumento() == $dniEliminar) {
-                    $encontrado = true;
-                }
-            $i++;
-            }
-        
-            // Si se encontró el pasajero, eliminarlo
-            if ($encontrado) {
-                unset($coleccionPasajeros[$i-1]);
-                $this->setColPasajerosViaje($coleccionPasajeros); 
-            } 
-            return $encontrado;
-	}
-
-    /**
-     * Verificar que el pasajero no se encuentre en la coleccion de Pasajeros o sea igual a otro pasajero
-     * @return boolean
-     */
-    public function verificarPasajero($nroDocumento,$coleccionPasajeros){
-        
-        //recorrer la coleccion de pasajeros
-            $i = 0;
-            $verificacion = false;
-            $buscado=false;
-            
-            while($i < count($coleccionPasajeros) && !$buscado){
-            
-                $pasajero = $coleccionPasajeros[$i];
-                //echo "hola";
-                    if ($nroDocumento == $pasajero->getNroDocumento()){
-                        $verificacion = true;
-                        $buscado = true;
-                    }
-                    $i++;
-                }
-            
-        return $verificacion; 
-    }
-
+   
 
 
     public function __toString(){
