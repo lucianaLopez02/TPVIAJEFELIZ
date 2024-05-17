@@ -6,14 +6,18 @@ class Viaje{
     private $cantMaximaPasajeros;
     private $colPasajerosViaje;// coleccion objPasajero
     private $responsableViaje; //objResponsable
+    private $costoViaje;
+    private $costoTotalAbonado;
 
-	public function __construct($codigoV, $destinoV, $cantMaximaPasajerosV, $pasajerosViajeV,$objResponsableV) {
+	public function __construct($codigoV, $destinoV, $cantMaximaPasajerosV, $pasajerosViajeV,$objResponsableV,$costoviaje, $costototalabonado) {
 
 		$this->codigo = $codigoV;
 		$this->destino = $destinoV;
 		$this->cantMaximaPasajeros = $cantMaximaPasajerosV;
 		$this->colPasajerosViaje = $pasajerosViajeV;
         $this->responsableViaje = $objResponsableV;
+        $this->costoViaje = $costoviaje;
+        $this->costoTotalAbonado = $costototalabonado;
     }
 	public function getCodigo() {
 		return $this->codigo;
@@ -53,6 +57,22 @@ class Viaje{
 
     public function setResponsableViaje($objResponsableV){
         $this->responsableViaje = $objResponsableV;
+    }
+
+    public function getCostoViaje() {
+        return $this->costoViaje;
+    }
+
+    public function setCostoViaje($costoviaje) {
+        $this->costoViaje = $costoviaje;
+    }
+
+    public function getCostoTotalAbonado() {
+        return $this->costoTotalAbonado;
+    }
+
+    public function setCostoTotalAbonado($costototalabonado) {
+        $this->costoTotalAbonado = $costototalabonado;
     }
 
     public function mostrarPasajeros(){
@@ -96,24 +116,52 @@ public function pasajeroYaCargado($doc){
     }
     return $pasajeroCargado;
 }
-    //une las dos funcionalidades de cargar y modificar pasajero
-    public function ingresaModificaPasajero($objInfoPasajero){
-        $dni = $objInfoPasajero->getNroDocumento();
-        $nombrePasajero = $objInfoPasajero->getNombre();
-        $apellidoPasajero = $objInfoPasajero->getApellido();
-        $telefonoPasajero = $objInfoPasajero->getTelefono();
-        $pasajeros = $this->getColPasajerosViaje();
-        if($this->pasajeroYaCargado($dni)){
-            $indiceModifica = $this->buscarPasajero($dni);
-            $elPasajero = $pasajeros[$indiceModifica];
-            $elPasajero->modificarPasajero($nombrePasajero,$apellidoPasajero,$dni,$telefonoPasajero);
-            $pasajeros[$indiceModifica] = $elPasajero;
-            $this->setColPasajerosViaje($pasajeros);
-        }else{
-        $objPasajero =  new Pasajero($nombrePasajero,$apellidoPasajero,$dni,$telefonoPasajero);
-        $pasajeros[]=$objPasajero;
-        $this->setColPasajerosViaje($pasajeros);
+   
+    
+    
+    /**
+     * retorna verdadero si la cantidad de pasajeros del viaje es menor a la cantidad máxima de pasajeros y
+     *  falso caso contrario
+     */
+    public function hayPasajesDisponible(){
+        $limite=$this->getCantMaximaPasajeros();
+        $cantPasajeros=count($this->getColPasajerosViaje());
+        $disponible=false;
+        if($cantPasajeros<=$limite){
+            $disponible=true;
         }
+        return $disponible;
+    }
+
+
+    /**
+     *  calcula el importe a pagar por el pasajero teniendo en cuenta el costo base del viaje y el porcentaje de incremento asociado al tipo de pasajero, actualiza el costo total recaudado del viaje y devuelve el importe a pagar.
+     */
+    private function calculoDelIncremento($objPasajero) {
+        $incremento = $objPasajero->darPorcentajeIncremento();
+        $importe = $this->getCostoViaje();
+        $importeAPagar = $importe + (($importe * $incremento) / 100);
+        $suma = $importeAPagar + $this->getCostoTotalAbonado();
+        $this->setCostoTotalAbonado($suma);
+        return $importeAPagar;
+    }
+    
+    /**
+     *  se encarga de vender un pasaje a un pasajero y determinar el importe a pagar por dicho pasaje. 
+     */
+    public function venderPasaje($objPasajero) {
+    
+        $importeAPagar = -1;
+    
+        if ($objPasajero instanceof PasajeroEstandar) {
+            $importeAPagar = $this->calculoDelIncremento($objPasajero);
+        }elseif ($objPasajero instanceof PasajeroVIP) {
+            $importeAPagar = $this->calculoDelIncremento($objPasajero);
+        }elseif ($objPasajero instanceof PasajeroEspecial) {
+            $importeAPagar = $this->calculoDelIncremento($objPasajero);
+        }
+    
+        return $importeAPagar;
     }
 
    
@@ -124,6 +172,8 @@ public function pasajeroYaCargado($doc){
                 "Destino: ".$this->getDestino()."\n".
                 "Cantidad maxima de pasajeros: ".$this->getCantMaximaPasajeros()."\n".
                 "Pasajeros del viaje: ".$this->mostrarPasajeros()."\n".
-				"Responsable del viaje: ".$this->getResponsableViaje()."\n";
+				"Responsable del viaje: ".$this->getResponsableViaje()."\n".
+                "Costo total abonado: " . $this->getCostoTotalAbonado() . "\n" .
+                "Responsable del viaje: " . $this->getResponsableViaje() . "\n";
     }
 }

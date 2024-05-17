@@ -16,6 +16,9 @@
 include_once 'Viaje.php';
 include_once 'Pasajero.php';
 include_once 'ResponsableV.php';
+include_once 'PasajeroVIP.php';
+include_once 'PasajeroEspecial.php';
+include_once 'PasajeroEstandar.php';
 
 //Menu Principal
 function mostrarMenuViaje(){
@@ -39,24 +42,15 @@ function mostrarMenuModificarViaje(){
     echo "3. cantidad máxima de pasajeros\n";
     echo "4. informacion de los pasajeros\n";
     echo "5. Informacion del Responsable del viaje\n";
-    echo "6. salir\n";
+    // echo "6. Vender Pasaje\n";
+    echo "7. salir\n";
     $opc2 = trim(fgets(STDIN));
     return $opc2;
 }
 
-function menuModificarPasajero(){
-    echo "------------[MENU PARA MODIFICAR INFORMACION DEL PASAJERO]-----------\n";
-    echo "1.Modificar Nombre\n";
-    echo "2.Modificar apellido\n";
-    echo "3.Modificar numero documento\n";
-    echo "4.Modificar telefono\n";
-
-    $opc3 = trim(fgets(STDIN));
-    return $opc3;
-}
 
 function menuModificarResponsable(){
-echo "--------------[MENU PARA MODIFICAR RESPONSABLE]------------"."\n";
+echo "--------------[MENU PARA MODIFICAR RESPONSABLE]------------\n";
     echo "1.modificar numero de empleado: "."\n";
     echo "2.modificar numero de licencia; "."\n";
     echo "3.modificar nombre: "."\n";
@@ -67,6 +61,139 @@ echo "--------------[MENU PARA MODIFICAR RESPONSABLE]------------"."\n";
 return $opc4;
 }
 
+function verificarDni($numeroDocumento,$viaje){
+    $documentoExiste = false;
+    $j = 0;
+
+        while ($j<count($viaje->getColPasajerosViaje()) && !$documentoExiste) {
+            $unPasajero = $viaje->getColPasajerosViaje()[$j];
+            if ($unPasajero->getNroDocumento() == $numeroDocumento) {
+                $documentoExiste = true;
+                echo "Ya existe un pasajero con el número de documento ingresado.\n";
+            }
+            $j++;
+        }
+        return $documentoExiste;
+}
+
+function leerDatosPasajero($unPasajero){
+    
+    echo "Ingrese número de documento del pasajero: ";
+        $numeroDocumento = trim(fgets(STDIN));
+
+        $documentoExiste = verificarDni($numeroDocumento,$viaje);
+
+        if ($documentoExiste){
+        echo "No se puede modificar, el documento ya existe.\n";
+        }else{
+        
+            echo "Ingrese el nombre del pasajero:\n";
+            $nombre = trim(fgets(STDIN));
+            echo "Ingrese el apellido del pasajero:\n";
+            $apellido = trim(fgets(STDIN));
+            echo "Ingrese el teléfono del pasajero:\n";
+            $telefono = trim(fgets(STDIN));
+            echo "Ingrese el número de asiento del pasajero:\n";
+            $numeroAsiento = trim(fgets(STDIN));
+            echo "Ingrese el número de ticket del pasajero:\n";
+            $numeroTicket = trim(fgets(STDIN));
+            $unPasajero->modificarPasajero($nombre,$apellido,$numeroDocumento,$telefono,$numeroAsiento,$numeroTicket);
+        }
+        return $unPasajero;
+}
+
+function modificarPasajeroTest($indice,$viaje){
+
+    $unPasajero = leerDatosPasajero($viaje->getColPasajerosViaje()[$indice]);
+
+    if ($unPasajero instanceof PasajeroVIP) {
+            //si es caso vip
+            echo "Ingrese el número de viajero frecuente del pasajero VIP:\n";
+            $numeroViajeroFrecuente = trim(fgets(STDIN));
+            echo "Ingrese la cantidad de millas del pasajero VIP:\n";
+            $cantidadMillas = trim(fgets(STDIN));
+            $unPasajero->modificarPasajeroVIP($unPasajero->getNombre(), $unPasajero->getApellido(),$unPasajero->getNroDocumento(), $unPasajero->getTelefono(), $unPasajero->getNumeroAsiento(),$unPasajero->getNumeroTicket(),$numeroViajeroFrecuente, $cantidadMillas);
+            echo "Datos cambiados correctamente!\n";
+            
+        
+    }elseif($unPasajero instanceof PasajeroEspecial){
+             //si es caso especial
+             echo "Necesita silla de ruedas? (s/n): ";
+             $sillaRuedas = (trim(fgets(STDIN)) === 's');
+ 
+             echo "Necesita asistencia en el embarque y desembarque? (s/n): ";
+             $asistencia = (trim(fgets(STDIN)) === 's');
+ 
+             echo "Necesita Comida Especial? (s/n): ";
+             $comidaEspecial = (trim(fgets(STDIN)) === 's');
+ 
+             $unPasajero->modificarPasajeroEspecial($unPasajero->getNombre(), $unPasajero->getApellido(),$unPasajero->getNroDocumento(), $unPasajero->getTelefono(), $unPasajero->getNumeroAsiento(),$unPasajero->getNumeroTicket(),$sillaRuedas,$asistencia,$comidaEspecial);
+             echo "Datos cambiados correctamente!\n";
+             
+        
+    }elseif($unPasajero instanceof PasajeroEstandar){
+         //si es estandar
+         $unPasajero->modificarPasajeroEstandar($unPasajero->getNombre(), $unPasajero->getApellido(),$unPasajero->getNroDocumento(), $unPasajero->getTelefono(), $unPasajero->getNumeroAsiento(),$unPasajero->getNumeroTicket());
+         echo "Datos cambiados correctamente!\n";
+    }else{      
+        
+            echo "Ingrese numero del 1 al 3\n";
+            
+    }
+
+    
+    echo $unPasajero;
+}
+
+function cargarPasajeroViaje($viaje,$indice){
+        
+    $unPasajero = leerDatosPasajero($viaje->getColPasajerosViaje()[$indice]);
+
+    // Crear un nuevo objeto de acuerdo al tipo de pasajero ingresado
+    echo "Que tipo de pasajero es: (1.VIP,2.Especial,3.Estandar:)";
+    $tipoPasajero = trim(fgets(STDIN));
+    switch ($tipoPasajero) {
+        case '1':
+            //si es caso vip
+            echo "Ingrese el número de viajero frecuente del pasajero VIP:\n";
+            $numeroViajeroFrecuente = trim(fgets(STDIN));
+            echo "Ingrese la cantidad de millas del pasajero VIP:\n";
+            $cantidadMillas = trim(fgets(STDIN));
+            $unPasajero = new PasajeroVIP($unPasajero->getNombre(), $unPasajero->getApellido(),$unPasajero->getNroDocumento(), $unPasajero->getTelefono(), $unPasajero->getNumeroAsiento(),$unPasajero->getNumeroTicket(),$numeroViajeroFrecuente, $cantidadMillas);
+            
+            break;
+        case '2':
+             //si es caso especial
+             echo "Necesita silla de ruedas? (s/n): ";
+             $sillaRuedas = (trim(fgets(STDIN)) === 's');
+ 
+             echo "Necesita asistencia en el embarque y desembarque? (s/n): ";
+             $asistencia = (trim(fgets(STDIN)) === 's');
+ 
+             echo "Necesita Comida Especial? (s/n): ";
+             $comidaEspecial = (trim(fgets(STDIN)) === 's');
+ 
+             $unPasajero = new PasajeroEspecial($unPasajero->getNombre(), $unPasajero->getApellido(),$unPasajero->getNroDocumento(), $unPasajero->getTelefono(),$unPasajero->getNumeroAsiento(),$unPasajero->getNumeroTicket(),$sillaRuedas,$asistencia,$comidaEspecial);
+            
+             break;
+        
+        case '3':
+         //si es estandar
+         $unPasajero = new PasajeroEstandar($unPasajero->getNombre(), $unPasajero->getApellido(),$unPasajero->getNroDocumento(), $unPasajero->getTelefono(),$unPasajero->getNumeroAsiento(),$unPasajero->getNumeroTicket());
+        break;        
+        default:
+            echo "Ingrese numero del 1 al 3\n";
+            break;
+    }
+    echo "Datos cargados correctamente!\n";
+            echo $unPasajero;
+     $pasajeros = $viaje->getColPasajerosViaje();
+    array_push($pasajeros,$unPasajero);
+    $viaje->setColPasajerosViaje($pasajeros);
+
+    return $pasajeros[count($pasajeros)-1];
+    }
+
 // Función para cargar un nuevo viaje
 function cargarViaje() {
     echo "Ingrese el código del viaje: ";
@@ -75,15 +202,16 @@ function cargarViaje() {
     $destino = trim(fgets(STDIN));
 
     echo "Ingresar cantidad máxima de pasajeros: ";
-    $cantidadMaxima = intval(trim(fgets(STDIN)));
+    $cantidadMaxima = trim(fgets(STDIN));
+
 
     // Crear objeto Viaje
-    $viaje = new Viaje($codigo, $destino, $cantidadMaxima, [], null);
+    $viaje = new Viaje($codigo, $destino, $cantidadMaxima, [], null,0,0);
 
     // Solicitar la cantidad de pasajeros
     do {
         echo "Ingrese la cantidad de pasajeros que subirán al viaje: ";
-        $cantPasajeros = intval(trim(fgets(STDIN)));
+        $cantPasajeros = trim(fgets(STDIN));
         if ($cantPasajeros > $cantidadMaxima) {
             echo "La cantidad de pasajeros no puede exceder la cantidad máxima permitida ($cantidadMaxima).\n";
         }
@@ -91,49 +219,27 @@ function cargarViaje() {
 
     // Cargar pasajeros
     $i = 0;
-$documentosIngresados = []; // Array asociativo para almacenar los números de documento ya ingresados
 
 while ($i < $cantPasajeros) {
-    echo "Ingrese nombre del pasajero: ";
-    $nombrePasajero = trim(fgets(STDIN));
-    echo "Ingrese apellido del pasajero: ";
-    $apellidoPasajero = trim(fgets(STDIN));
     
-    $numeroDocumentoPasajero = null;
-    $documentoExiste = true;
-
-    do {
-        echo "Ingrese número de documento del pasajero: ";
-        $numeroDocumentoPasajero = trim(fgets(STDIN));
-
-        // Verificar si el número de documento ya fue ingresado
-        $documentoExiste = false;
-        foreach ($documentosIngresados as $documento) {
-            if ($documento == $numeroDocumentoPasajero) {
-                $documentoExiste = true;
-                echo "Ya existe un pasajero con el número de documento ingresado. Intente con otro número de documento.\n";
-                break;
-            }
-        }
-    } while ($documentoExiste);
-
-    // Agregar el número de documento al array de documentos ingresados
-    $documentosIngresados[] = $numeroDocumentoPasajero;
-
-    echo "Ingrese teléfono del pasajero: ";
-    $telefonoPasajero = trim(fgets(STDIN));
-    
-    // Crear objeto Pasajero
-    $pasajero = new Pasajero($nombrePasajero, $apellidoPasajero, $numeroDocumentoPasajero, $telefonoPasajero);
-    
+   
     // Agregar pasajero al viaje
-    $viaje->ingresaModificaPasajero($pasajero);
+    $pasajero = cargarPasajeroViaje($viaje,$i);
+
+    // Preguntar si se desea vender un pasaje para este pasajero
     
+            $importeAPagar = $viaje->venderPasaje($pasajero);
+            echo $importeAPagar;
+            if ($importeAPagar != -1) {
+                echo "El importe a pagar por el pasaje es: $importeAPagar\n";
+            } else {
+                echo "No se pudo vender el pasaje.\n";
+            }
     $i++;
 }
 
     // Crear objeto ResponsableV
-    echo "--------ingresando datos del responsable-------\n";
+    echo "\n--------ingresando datos del responsable-------\n";
     echo "Ingrese el número de empleado del responsable: ";
     $numeroEmpleado = trim(fgets(STDIN));
     echo "Ingrese el número de licencia del responsable: ";
@@ -185,65 +291,29 @@ function modificarViaje(Viaje $viaje) {
             echo $viaje->mostrarPasajeros();
             echo "Ingrese el dni del pasajero que quiere modificar su informacion:\n";
             $dniPasajero = trim(fgets(STDIN));
-            $aPasajero = $viaje->buscarPasajero($dniPasajero);
-        if($aPasajero != -1){
-            $unPasajero = $pasajeros[$aPasajero];
-            // Si se encontró el pasajero, solicitar la información para modificar
-                $opcionModificarPasajero = menuModificarPasajero();
-                switch ($opcionModificarPasajero) {
-                    case 1:
-                        echo "Ingrese el nuevo nombre del pasajero: ";
-                        $nombre = trim(fgets(STDIN));
-                        // Modificar el nombre del pasajero encontrado
-                        $unPasajero->setNombre($nombre);
-                        break;
-        case 2:
-            echo "Ingrese el nuevo apellido del pasajero: ";
-            $apellido = trim(fgets(STDIN));
-            $unPasajero->setApellido($apellido);
-            break;
-        case 3:
-            echo "Ingrese el nuevo número de documento del pasajero: ";
-            $numeroDocumento = trim(fgets(STDIN));
-            $unPasajero->setNumeroDocumento($numeroDocumento);
-            break;
-        case 4:
-            echo "Ingrese el nuevo teléfono del pasajero: ";
-            $telefono = trim(fgets(STDIN));
-            $unPasajero->setTelefono($telefono);
-            break;
-        default:
-            echo "Opción no válida.\n";
-            break;
-    }
-} else { // Si el pasajero no se encuentra, preguntar si se desea agregar
-    echo "No se encontró ningún pasajero con el número de documento proporcionado.\n";
-    echo "¿Desea agregar este pasajero al viaje? (s/n): ";
-    $opcionAgregarPasajero = (trim(fgets(STDIN)));
-    if ($opcionAgregarPasajero === "s") {
-        // Verificar si se puede agregar más pasajeros al viaje
-        if (count($viaje->getColPasajerosViaje()) < $viaje->getCantMaximaPasajeros()) {
-            // Solicitar la información del nuevo pasajero
-            echo "Ingrese nombre del pasajero: ";
-            $nombrePasajero = trim(fgets(STDIN));
-            echo "Ingrese apellido del pasajero: ";
-            $apellidoPasajero = trim(fgets(STDIN));
-            echo "Ingrese numero documento del pasajero: ";
-            $nroDocPasajero = trim(fgets(STDIN));
-            echo "Ingrese telefono del pasajero: ";
-            $telefonoPasajero = trim(fgets(STDIN));
+            $indicePasajero = $viaje->buscarPasajero($dniPasajero);
+            if($indicePasajero != -1){
+                echo "Se encontro el dni del pasajero, se procederan a cambiar los datos\n";
+                modificarPasajeroTest($indicePasajero,$viaje);
+             echo "Pasajero modificado exitosamente!\n";
+             
+            } else { // Si el pasajero no se encuentra, preguntar si se desea agregar
+                echo "Desea agregar este pasajero (s/n)?:";
+                $opcionAgregarPasajero = (trim(fgets(STDIN)));
+                if ($opcionAgregarPasajero == "s") {
+                    // Verificar si se puede agregar más pasajeros al viaje
+                    if (count($viaje->getColPasajerosViaje()) < $viaje->getCantMaximaPasajeros()) {
+                        // Solicitar la información del nuevo pasajero
+                        // Agregar el nuevo pasajero al viaje
+                        $pasajeros[$indicePasajero] = cargarPasajeroViaje($viaje,$indicePasajero);
 
-            // Crear el objeto Pasajero
-            $nuevoPasajero = new Pasajero($nombrePasajero, $apellidoPasajero,$nroDocPasajero,$telefonoPasajero);
-
-            // Agregar el nuevo pasajero al viaje
-            $viaje->ingresaModificaPasajero($nuevoPasajero);
-
-            echo "Pasajero agregado al viaje exitosamente.\n";
-        } else {
-            echo "No se puede agregar más pasajeros. La cantidad máxima ha sido alcanzada.\n";
-        }
-    }
+                        echo "Pasajero agregado al viaje exitosamente.\n";
+                    } else {
+                        echo "No se puede agregar más pasajeros. La cantidad máxima ha sido alcanzada.\n";
+                    }
+                }else{
+                    echo "no se ha agregado el pasajero\n";
+                }
 }
     
             break;
@@ -253,51 +323,81 @@ function modificarViaje(Viaje $viaje) {
             // Implementar la lógica de modificación del responsable
     
         switch ($opcionModificarResponsable) {
-        case 1:
-            echo "Ingrese el nuevo número de empleado del responsable: ";
-            $numeroEmpleado = trim(fgets(STDIN));
-            $viaje->getResponsableViaje()->setNumeroEmpleado($numeroEmpleado);
+            case 1:
+                echo "Ingrese el nuevo número de empleado del responsable: ";
+                $numeroEmpleado = trim(fgets(STDIN));
+                $viaje->getResponsableViaje()->setNumeroEmpleado($numeroEmpleado);
+                break;
+            case 2:
+                echo "Ingrese el nuevo número de licencia del responsable: ";
+                $numeroLicencia = trim(fgets(STDIN));
+                $viaje->getResponsableViaje()->setNumeroLicencia($numeroLicencia);
+                break;
+            case 3:
+                echo "Ingrese el nuevo nombre del responsable: ";
+                $nombre = trim(fgets(STDIN));
+                $viaje->getResponsableViaje()->setNombre($nombre);
+                break;
+            case 4:
+                echo "Ingrese el nuevo apellido del responsable: ";
+                $apellido = trim(fgets(STDIN));
+                $viaje->getResponsableViaje()->setApellido($apellido);
+                break;
+            case 5:
+                // Mostrar información del responsable
+                echo "Información actual del responsable:\n";
+                echo $viaje->getResponsable();
+                break;
+            case 6:
+                echo "Volviendo al menú principal...\n";
+                break;
+            default:
+                echo "Opción no válida.\n";
+                break;
+            }
             break;
-        case 2:
-            echo "Ingrese el nuevo número de licencia del responsable: ";
-            $numeroLicencia = trim(fgets(STDIN));
-            $viaje->getResponsableViaje()->setNumeroLicencia($numeroLicencia);
-            break;
-        case 3:
-            echo "Ingrese el nuevo nombre del responsable: ";
-            $nombre = trim(fgets(STDIN));
-            $viaje->getResponsableViaje()->setNombre($nombre);
-            break;
-        case 4:
-            echo "Ingrese el nuevo apellido del responsable: ";
-            $apellido = trim(fgets(STDIN));
-            $viaje->getResponsableViaje()->setApellido($apellido);
-            break;
-        case 5:
-            // Mostrar información del responsable
-            echo "Información actual del responsable:\n";
-            echo $viaje->getResponsable();
-            break;
-        case 6:
-            echo "Volviendo al menú principal...\n";
-            break;
-        default:
-            echo "Opción no válida.\n";
-            break;
-}
-            break;
-        case 6:
-            echo "Volviendo al menú principal...\n";
-            break;
-        default:
-            echo "Opción no válida.\n";
-            break;
+            // case 6:
+            //     // Vender un pasaje
+            //     if ($viaje->hayPasajesDisponible()) {
+            //         echo "ingrese dni del pasajero que desea vender pasaje";
+            //         $dniPasajero = trim(fgets(STDIN));
+
+            //         $verificacion = verificarDni($dniPasajero,$viaje);
+            //         $indicePasajero = $viaje->buscarPasajero($dniPasajero);
+
+            //         if($indicePasajero != -1){
+            //         $objPasajero = $viaje->getColPasajerosViaje()[$indicePasajero];
+            //         }else{
+            //             echo "el dni ingresado no existe\n";
+            //         }
+            //         // Vender el pasaje
+            //         if($verificacion){
+            //         $importeAPagar = $viaje->venderPasaje($objPasajero);
+            //         if ($importeAPagar != -1) {
+            //             echo "El importe a pagar por el pasaje es: $importeAPagar\n";
+            //         } else {
+            //             echo "No se pudo vender el pasaje.\n";
+            //         }
+            //     } 
+            // }else{
+            //     echo "No se encontro al pasajero para vender viaje";
+            // }
+            //     break;
+            case 7:
+                echo "Volviendo al menú principal...\n";
+                break;
+            default:
+                echo "Opción no válida.\n";
+                break;
+        }
     }
-}
 
 // Función para mostrar la información de un viaje
 function mostrarViaje(Viaje $viaje) {
+    // Mostrar información general del viaje
+    echo "Información del Viaje:\n";
     echo $viaje;
+
 }
 
 // Función principal
